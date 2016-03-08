@@ -12,7 +12,15 @@ if($auth->getEnableContent()){
         $mailer->init();
       } 
       if($_GET['opt'] == 'imgs'){
-        echo 'imgs';
+        $imageManager = new ImageManager();
+        $imageManager->interfaceImageData();
+        $imageManager->goToFolder();
+        $imageManager->interfaceUpload();
+        // $imageManager->createImageFolder('myfilename');
+        echo '<form mehtod="" action="">';
+        echo '<input type="text" value="'.$imageManager->interfaceFolderPosition().'">';
+        echo '<button class="button submit">';
+        echo $imageManager->interfaceFolderPosition();
       }
     }
 }

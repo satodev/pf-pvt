@@ -6,11 +6,10 @@ class Mailer{
     private static $query;
     public function __construct()
     {
-        
+        $this->getFolderContent();
     }
     public function init()
     {
-        $this->getFolderContent();
         $this->getMessageData();
         $this->createInterface();    
     }
@@ -28,7 +27,7 @@ class Mailer{
     }
     public function getFolderContent()
     {
-        $dir = scandir('data');
+        $dir = scandir($_SERVER['DOCUMENT_ROOT'].'/data');
         $filter = ['index.php', '.', '..'];
         foreach($dir as $d){
             for($i = 0; $i< sizeof($filter); $i++){
@@ -41,16 +40,18 @@ class Mailer{
         $this->dir = $dir;
         return $dir;
     }
-    public function searchMethod()
+    public function deleteMails()
     {
-        //search bar : filtering name, subject, email, date
+        foreach($this->dir as $d){
+            unlink($_SERVER['DOCUMENT_ROOT'].'/data/'.$d);
+        }
+        echo 'mail file deleted';
     }
     public function createInterface()
     {
         $this->interfaceSearchBar();
+        $this->interfaceMenuBar();
         $this->interfaceAccordion();
-        $this->interfaceChange();
-        
     }
     public function interfaceSearchBar()
     {
@@ -60,29 +61,28 @@ class Mailer{
     {
         if($this->data){
         foreach($this->data as $key=>$d){
-        echo' <ul class="accordion" data-accordion data-allow-all-closed="true">
+        echo' <ul class="accordion" data-accordion role="tablist">
   <li class="accordion-item">
-    <a href="#panel'.$key.'d" role="tab" class="accordion-title" id="panel'.$key.'d-heading" aria-controls="panel'.$key.'d">'.$d['name'].' : '.$d['from'].' : '.$d['subject'].' : '.$d['date'].'</a>
-    <div id="panel'.$key.'d" class="accordion-content" role="tabpanel" data-tab-content aria-labelledby="panel'.$key.'d-heading">
+    <a href="#panel1d" role="tab" class="accordion-title" id="panel1d-heading" aria-controls="panel1d">'.$d['name'].' : '.$d['from'].' : '.$d['subject'].' : '.$d['date'].'</a>
+    <div id="panel1d" class="accordion-content" role="tabpanel" data-tab-content aria-labelledby="panel1d-heading">
       '.$d['message'].'
     </div>
   </li>
 </ul>';
         }
         }else{
-            echo '<div class="callout">Ta boite mail est vide</div>';
+            echo '<div class="callout secondary">Boite mail vide</div>';
         }
     }
-    public function interfaceChange()
+    public function interfaceMenuBar()
     {
-        if($this->data)
-        {
-            foreach($this->data as $key=>$d)
-            {
-                echo '<input type="textbox" name="tb_'.$key.'>';
-                echo 'hello';
-            }
-        }
+        echo '<div class="callout clearfix">';
+        echo '<a id="mail_delete" class="button float-right">Supprimer tout</a>';
+        echo '</div>';
+    }
+    public function queryDeleteMails()
+    {
+        $this->deleteMails();
     }
     public function getQuery()
     {
@@ -92,4 +92,5 @@ class Mailer{
     {
         Mailer::$query = $_GET['query'];
     }
+   
 }
