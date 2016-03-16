@@ -13,14 +13,19 @@ if($auth->getEnableContent()){
       } 
       if($_GET['opt'] == 'imgs'){
         $imageManager = new ImageManager();
-        $imageManager->interfaceImageData();
+        // $imageManager->goToFolder('compute');
+        // $imageManager->createImageFolder('compute');
+        $imageManager->getTreeMap();
+        // $imageManager->interfaceTreeFolder();
+        $imageManager->interfaceInputUrlBar();
+        $imageManager->interfaceAccordion();
+        // $imageManager->interfaceImageData();
+        // echo '<p id="currentPosition">'.$imageManager->getFolderPosition().'</p>';
         $imageManager->goToFolder();
-        $imageManager->interfaceUpload();
+        
         // $imageManager->createImageFolder('myfilename');
-        echo '<form mehtod="" action="">';
-        echo '<input type="text" value="'.$imageManager->interfaceFolderPosition().'">';
-        echo '<button class="button submit">';
-        echo $imageManager->interfaceFolderPosition();
+        
+        $imageManager->interfaceUpload();
       }
     }
 }

@@ -2,6 +2,7 @@ $(document).foundation();
 $(document).ready(function() {
     keyUp();
     mailer.init();
+    image_system.init();
 });
 var data = Array();
 
@@ -82,12 +83,72 @@ var mailer = {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
-                if(xhttp.responseText && xhttp.responseText == "mail file deleted"){
+                if (xhttp.responseText && xhttp.responseText == "mail file deleted") {
                     location.reload();
                 }
             }
         };
         xhttp.open('GET', 'partials/handlerMailerDeleteQuery.php', true);
         xhttp.send();
+    }
+};
+
+var image_system = {
+    callQuery: 0,
+    container : document.getElementById('interfaceInputUrlBar'),
+  
+    init: function() {
+        if(image_system.container){
+            this.inputDetection();
+        }
+    },
+    inputDetection: function() {
+        var input = image_system.container.children[1];
+        var bsub = image_system.container.children[2];
+        bsub.onclick = function() {
+            var val = input.value;
+            image_system.defineCallQuery(val);
+            image_system.callAjax();
+        };
+        input.onclick = function() {
+            this.select();
+        };
+        input.onkeyup = function(e) {
+            if (e.which == 13 || e.which == 13 && e.which == 16) {
+                var val = input.value;
+                image_system.defineCallQuery(val);
+                image_system.callAjax();
+            }
+        };
+    },
+    defineCallQuery: function(arg){
+          if(arg){
+              this.callQuery = arg;
+          }
+    },
+    callAjax: function() {
+        var cajax = new XMLHttpRequest();
+        var i = image_system.container.children[1];
+        cajax.onreadystatechange = function() {
+            if (cajax.readyState == 4 && cajax.status == 200) {
+                i.value = cajax.responseText;
+                i.placeholder = cajax.responseText;
+                image_system.retreiveAjaxCall(cajax.responseText);
+                image_system.updateContent(cajax.responseText);
+            }
+        }
+        cajax.open('GET', 'partials/handlerImageSystem.php?im_call=' + this.callQuery, true);
+        cajax.send();
+    },
+    retreiveAjaxCall : function(e){
+      if(e){
+          console.log('ajax call retreive : '+e);
+      }
+    },
+    updateContent : function(content){
+        var current_position_bar = document.getElementById('currentPosition');
+        if(current_position_bar){
+            current_position_bar.innerHTML = content;
+        }
     }
 };

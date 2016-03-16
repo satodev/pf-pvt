@@ -7,6 +7,7 @@ class ImageManager
     //[Test] set/change location user
     //[Test] status method (where is user)
     //[ ] action bar (change dir, rename dir, upload file, add caption)
+    //[ ] action bar root define (security access)
     
     public $root_folder_exists;
     public $root_folder;
@@ -15,6 +16,7 @@ class ImageManager
     
     public function __construct()
     {
+       
         if(!$this->root_folder){
             $this->defineRootFolderName();    
         }
@@ -38,7 +40,6 @@ class ImageManager
             mkdir($this->root_folder);
         }else{
             $this->root_folder_exists = true;
-            echo '<p class="callout secondary">createImageManagerRootFolder error : folder exists || root_folder name doesn\'t</p>';   
         }
     }
     /*
@@ -62,6 +63,37 @@ class ImageManager
             }
             return $folder;
         }
+    }
+    /*
+    * recursive retreive data of folder into array
+    */
+    public function dirToArray($dir){
+   $result = array();
+
+   $cdir = scandir($dir);
+   foreach($cdir as $key => $value) {
+       if (!in_array($value, array(".", ".."))) {
+           if (is_dir($dir.DIRECTORY_SEPARATOR.$value)) {
+               $result[$value] = $this->dirToArray($dir.DIRECTORY_SEPARATOR.$value);
+           }
+           else {
+               $result[] = $value;
+           }
+       }
+   }
+
+   return $result;
+   }
+   /*
+   *  
+   */
+    public function getTreeMap($url = null)
+    {
+        if (!$url) {
+            $url = 'data_img';
+        }
+        $dir = $this->dirToArray($url);
+        return $dir;
     }
     /*
     *  create new image folder
@@ -101,9 +133,11 @@ class ImageManager
     public function getFolderPosition()
     {
         if($this->folder_position){
-            return $this->folder_position;
-        }else{
-            return false;
+            if(!$this->folder_position && $this->folder_position == $this->root_folder && $this->folder_position == 0){
+                return '/';
+            }else{
+                return $this->folder_position;
+            }
         }
     }
     /*
@@ -126,13 +160,32 @@ class ImageManager
         var_dump($_FILES);
     }
     /*
+    * Query : get directory call
+    */
+    public function getDirectoryCall($arg)
+    {
+        $pattern = '/^\/*/i';
+        preg_match($pattern, $arg, $match);
+        if($match){
+            $arg = substr_replace($arg, '', 0, strlen($match[0]));
+        }
+        if($arg){
+            $this->goToFolder($arg);
+        }
+    }
+    /*
     * Interface : curent folder data
     */
     public function interfaceImageData()
     {
         $folder = $this->retreiveImageData($this->getFolderPosition);
         if($folder){
+            echo '<div id="interfaceImageData">';
             var_dump($folder);
+            foreach($folder as $f){
+                echo '<a>'.$f.'</a><br />';
+            }
+            echo '</div>';
         }
     }
     /*
@@ -140,7 +193,7 @@ class ImageManager
     */
     public function interfaceFolderPosition()
     {
-        return $this->getFolderPosition();
+        $this->getFolderPosition();
     }
     /*
     *  Interface : change name folder
@@ -154,9 +207,59 @@ class ImageManager
     */
     public function interfaceUpload()
     {
+        echo '<div class="callout">';
         echo '<form action="partials/uploadFile.php" method="POST" enctype="multipart/form-data">';
         echo '<input type="file" name="fileUpload[]" id="fileUpload" multiple>';
         echo '<input type="submit" value="Upload Image" name="submit">';
         echo '</form>';
+        echo '</div>';
+    }
+    /*
+    * Interface : directory
+    */
+    public function interfaceInputUrlBar()
+    {
+        echo '  
+        <div class="input-group" id="interfaceInputUrlBar">
+            <span class="input-group-label">/</span>
+            <input type="text" name="urlBar" class="input-group-field" value="'.$this->getFolderPosition().'" placeholder="'.$this->getFolderPosition().'">
+            <a class="input-group-button button" name="submit">Submit</a>
+        </div>';
+    }
+    /*
+    * Interface : tree map
+    */
+    public function interfaceTreeFolder($var = null)
+    {
+        echo '<div class="callout">';
+        $this->parseFolder('data_img');
+        echo '</div>';
+    }
+    public function interfaceAccordion($arg = null)
+    {
+            if($arg == null){
+                $treeMap = $this->getTreeMap($arg);
+            }else{
+                $treeMap = $arg;
+            }
+            echo '<ul class="vertical menu" data-accordion-menu>';
+            foreach($treeMap as $k=>$t){
+                    if(is_array($t) && is_string($k) && !empty($t)){
+                        echo '<li>';
+                        echo '<a href="#">'.$k.'</a>';
+                        echo ' <ul class="menu vertical nested">';
+                        $this->interfaceAccordion($t);
+                        echo '</ul></li>';
+                    }else if (is_array($t) && is_string($k) && empty($t)){
+                             echo '<li>';
+                        echo '<a href="#">'.$k.'</a>';
+                        echo '</li>';
+                    }else{
+                        echo '<li>';
+                        echo '<a href="#">'.$t.'</a>';
+                        echo '</li>';
+                    }
+            }
+            echo '</ul>';
     }
 }
